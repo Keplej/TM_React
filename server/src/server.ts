@@ -1,13 +1,14 @@
-import { Server } from "socket.io";
+import { Server, Socket } from "socket.io";
 import express from 'express';
 import { createServer } from 'http';
 import cors from 'cors';
+import { ClientToServerEvents, ServerToClientEvents } from "../../typings"
 
 const app = express();
 app.use(cors());
 const server = createServer(app);
 const port = 3000;
-const io = new Server(server, {
+const io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
     cors: {
         origin: "http://localhost:5173",
         methods: ["GET", "POST"],
@@ -19,8 +20,11 @@ const io = new Server(server, {
 //     res.send('<h1>Hello World</h1>');
 // });
 
-io.on("connection", (socket) => {
-    console.log(socket.id);
+io.on("connection", (socket : Socket<ClientToServerEvents, ServerToClientEvents>) => { // types are reversed from the client 
+    // console.log(socket.id);
+  socket.on("clientMsg", (data) => { // call back function data
+    console.log(data);
+  })
 })
 
 server.listen(port, () => {
