@@ -23,7 +23,14 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
 io.on("connection", (socket : Socket<ClientToServerEvents, ServerToClientEvents>) => { // types are reversed from the client 
     // console.log(socket.id);
   socket.on("clientMsg", (data) => { // call back function data
-    console.log(data);
+    // console.log(data);
+
+    // Client fires an event -> server listens to that event -> we fire the event when we get it -> serves the client message to all the clients
+    // io.sockets.emit("serverMsg", data); // broadcast to everyone
+
+    // broadcast to everyone except the client
+    // think sending message to another user and that other user only sees the message that you sent to them. 
+    socket.broadcast.emit("serverMsg", data)
   })
 })
 
