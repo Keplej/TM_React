@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 // Importing out typings
-import { ServerToClientEvents, ClientToServerEvents } from "../../typings"
+import { ServerToClientEvents, ClientToServerEvents } from "../../../../typings"
 import { FormEvent, useEffect, useState } from 'react';
 
 // Able to see the socket id from server

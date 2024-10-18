@@ -1,14 +1,28 @@
+import "dotenv/config";
 import { Server, Socket } from "socket.io";
 import express from 'express';
 import { createServer } from 'http';
+import cookieParser from "cookie-parser";
 import cors from 'cors';
 import { ClientToServerEvents, ServerToClientEvents } from "../../typings"
 import { instrument } from "@socket.io/admin-ui";
+import mongoose from "mongoose";
+import { router as userRouter } from "./routes/user.router";
+import connectToMongoDb from "./config/db.config";
+import { PORT, NODE_ENV } from "./constants/env";
+import errorHandler from "./middleware/error-handler.middleware";
 
 const app = express();
-app.use(cors());
+app.use(cors({
+    // origin: APP_ORIGIN,
+    // credentials: true,
+}));
+app.use(express.json())
+app.use(express.urlencoded({extended: true}));
+app.use(cookieParser());
 const server = createServer(app);
-const port = 3000;
+
+
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
     cors: {
         origin: ["http://localhost:5173", "https://admin.socket.io/"],
@@ -17,34 +31,22 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
     },
 })
 
-// app.get('/', (req: Request, res: Response) => {
-//     res.send('<h1>Hello World</h1>');
-// });
+app.use('/api', userRouter);
 
-io.on("connection", (socket : Socket<ClientToServerEvents, ServerToClientEvents>) => { // types are reversed from the client 
-    // console.log(socket.id);
-  socket.on("clientMsg", (data) => { // call back function data
-    // this is empty broadcast to everyone, else create a room and only to that room emit the server message
-    if (data.room === "") {
-      io.sockets.emit("serverMsg", data);
-    } else {
-      socket.join(data.room)
-      io.to(data.room).emit("serverMsg", data);
+app.get("/", async (req, res, next) => {
+    try {
+        throw new Error("This is an test Error");
+        res.status(200).json({
+            status: "healthy",
+        });
+    } catch(e) {
+        next(e);
     }
+});
 
-    // Client fires an event -> server listens to that event -> we fire the event when we get it -> serves the client message to all the clients
-    // io.sockets.emit("serverMsg", data); // broadcast to everyone
+app.use(errorHandler);
 
-    // broadcast to everyone except the client
-    // think sending message to another user and that other user only sees the message that you sent to them. 
-    // socket.broadcast.emit("serverMsg", data)
-  })
-})
-
-instrument(io, {
-  auth: false,
-})
-
-server.listen(port, () => {
-    console.log(`server is running at http://localhost:${port}`)
+app.listen(PORT, async () => {
+  console.log(`App is listening on port ${PORT} in ${NODE_ENV} environment.`)
+  await connectToMongoDb();
 })
