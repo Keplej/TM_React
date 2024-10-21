@@ -8,6 +8,6 @@ post {{baseUrl}}/registerUser
 Content-Type: application/json
 
 {
-    "username": "TestUser",
+    "username": "TestUser2",
     "password": "testpassword"
 }

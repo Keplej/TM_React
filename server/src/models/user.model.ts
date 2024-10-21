@@ -1,6 +1,15 @@
 import mongoose, { Schema } from "mongoose";
+import { compareValue, hashValue } from "../utils/bcrypt";
 
-const userSchema = new Schema({
+export interface UserDocument extends mongoose.Document {
+    username: string,
+    password: string;
+    createdAt: Date;
+    updatedAt: Date;
+    comparePassword(val:string): Promise<boolean>;
+}
+
+const userSchema = new mongoose.Schema<UserDocument>({
     username: { 
         type: String, 
         required: true,  
@@ -8,11 +17,28 @@ const userSchema = new Schema({
     },
     password: { 
         type: String, 
-        required: true,
-        minLength: 6, 
+        required: true
     },
+},{
+    timestamps: true,
 })
 
-const User = mongoose.model('User', userSchema);
+userSchema.pre("save", async function (next) {
+    // Built in function from mongodb
+    // if is modified go to has the password
+    if (!this.isModified("password")) {
+        return next();
+    }
 
-export { User };
+    this.password = await hashValue(this.password)
+    next();
+})
+
+// This will be the hashed value comparing
+userSchema.methods.comparePassword = async function (val: string) {
+    return compareValue(val, this.password);
+}
+
+const User = mongoose.model<UserDocument>('User', userSchema);
+
+export default User;

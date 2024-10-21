@@ -11,6 +11,8 @@ import { router as userRouter } from "./routes/user.router";
 import connectToMongoDb from "./config/db.config";
 import { PORT, NODE_ENV } from "./constants/env";
 import errorHandler from "./middleware/error-handler.middleware";
+import authRoutes from "./routes/auth.router";
+
 
 const app = express();
 app.use(cors({
@@ -31,18 +33,15 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
     },
 })
 
-app.use('/api', userRouter);
+// app.use('/api', userRouter);
 
-app.get("/", async (req, res, next) => {
-    try {
-        throw new Error("This is an test Error");
-        res.status(200).json({
-            status: "healthy",
-        });
-    } catch(e) {
-        next(e);
-    }
+app.get("/", (req, res, next) => {
+    res.status(200).json({
+        status: "healthy",
+    });   
 });
+
+app.use('/auth', authRoutes);
 
 app.use(errorHandler);
 

@@ -1,6 +1,13 @@
-import express from "express"
+import express, { Router } from "express"
 const router = express.Router();
 import { User } from "../models/user.model";
+import { registerHandler } from "../controller/user.controller";
+
+
+const authRoutes = Router();
+
+authRoutes.post('/register', registerHandler)
+
 
 // Get all users
 router.get('/getUsers', async (req, res) => {
