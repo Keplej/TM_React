@@ -1,5 +1,8 @@
 import { z } from "zod";
 import catchErrors from "../utils/catch-errors.utils";
+import { createAccount } from "../services/auth.service";
+import { CREATED } from "../constants/http";
+import { setAuthCookies } from "../utils/cookies.utils";
 
 const registerSchema = z.object({
     username: z.string().min(5).max(15),
@@ -22,9 +25,17 @@ export const registerHandler = catchErrors(
             userAgent: req.headers["user-agent"],
         })
         // call service
+        const {
+            // return users and tokens
+            user,
+            accessToken,
+            refreshToken
 
+        } = await createAccount(request);
         
 
         // return response
+        return setAuthCookies({res, accessToken, refreshToken})
+        .status(CREATED).json(user)
     }
 )

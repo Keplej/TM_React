@@ -7,7 +7,7 @@ import cors from 'cors';
 import { ClientToServerEvents, ServerToClientEvents } from "../../typings"
 import { instrument } from "@socket.io/admin-ui";
 import mongoose from "mongoose";
-import { router as userRouter } from "./routes/user.router";
+// import { router as userRouter } from "./routes/user.router";
 import connectToMongoDb from "./config/db.config";
 import { PORT, NODE_ENV } from "./constants/env";
 import errorHandler from "./middleware/error-handler.middleware";
