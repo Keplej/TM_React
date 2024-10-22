@@ -7,6 +7,7 @@ export interface UserDocument extends mongoose.Document {
     createdAt: Date;
     updatedAt: Date;
     comparePassword(val:string): Promise<boolean>;
+    omitPassword(): Pick<UserDocument, "_id" | "username" | "createdAt" | "updatedAt">; // this is to make sure the password isnt being sent through the response
 }
 
 const userSchema = new mongoose.Schema<UserDocument>({
@@ -37,6 +38,13 @@ userSchema.pre("save", async function (next) {
 // This will be the hashed value comparing
 userSchema.methods.comparePassword = async function (val: string) {
     return compareValue(val, this.password);
+}
+
+// omit password in response
+userSchema.methods.omitPassword = function () {
+    const user = this.toObject(); // mongoose built in method that will convert our user document into a plain js object
+    delete user.password;
+    return user;
 }
 
 const User = mongoose.model<UserDocument>('User', userSchema);
