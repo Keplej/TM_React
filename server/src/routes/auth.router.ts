@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { loginHandler, registerHandler } from "../controller/user.controller";
+import { loginHandler, logoutHandler, registerHandler } from "../controller/user.controller";
 
 
 
@@ -10,5 +10,8 @@ authRoutes.post("/register", registerHandler);
 
 // login
 authRoutes.post("/login", loginHandler);
+
+// logut
+authRoutes.get("/logout", logoutHandler);
 
 export default authRoutes;

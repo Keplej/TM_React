@@ -1,8 +1,10 @@
 import catchErrors from "../utils/catch-errors.utils";
 import { createAccount, loginUser } from "../services/auth.service";
 import { CREATED, OK } from "../constants/http";
-import { setAuthCookies } from "../utils/cookies.utils";
+import { clearAuthCookies, setAuthCookies } from "../utils/cookies.utils";
 import { loginSchema, registerSchema } from "./user.schemas";
+import { verifyToken } from "../utils/jwt.utils";
+import SessionModel from "../models/session.model";
 
 
 export const registerHandler = catchErrors(
@@ -40,4 +42,21 @@ export const loginHandler = catchErrors(async (req, res) => {
     return setAuthCookies({res, accessToken, refreshToken}).status(OK).json({
         message: "Login successful",
     })
+});
+
+export const logoutHandler = catchErrors(async (req, res) => {
+    const accessToken = req.cookies.accessToken;
+    // we want to delete the session to that access token
+    const { payload, } = verifyToken(accessToken)
+
+    // if payload isn't valid or legit, we just want to prevent from running db query (not valid just ignore)
+    if (payload) {
+        await SessionModel.findByIdAndDelete(payload.sessionId)
+    }
+
+    // clear cookies
+    return clearAuthCookies(res).
+    status(OK).json({
+        message: "Logout successful",
+    });
 });
