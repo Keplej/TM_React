@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { loginHandler, logoutHandler, registerHandler } from "../controller/user.controller";
+import {loginHandler, logoutHandler, refreshHandler, registerHandler} from "../controller/user.controller";
 
 
 
@@ -13,5 +13,8 @@ authRoutes.post("/login", loginHandler);
 
 // logut
 authRoutes.get("/logout", logoutHandler);
+
+// refresh request
+authRoutes.get("/refresh", refreshHandler);
 
 export default authRoutes;

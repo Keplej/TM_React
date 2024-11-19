@@ -4,7 +4,8 @@ import User from "../models/user.model";
 import { JWT_REFRESH_SECRET, JWT_SECRET } from "../constants/env";
 import appAssert from "../utils/appAssert.utils";
 import { CONFLICT, UNAUTHORIZED } from "../constants/http";
-import { refreshTokenSignOptions, signToken } from "../utils/jwt.utils";
+import {RefreshTokenPayload, refreshTokenSignOptions, signToken, verifyToken} from "../utils/jwt.utils";
+import {ONE_DAY_MS, thirtyDaysFromNow} from "../utils/date.utils";
 
 export type CreateAccountParams = {
     username: string;
@@ -99,4 +100,48 @@ export const loginUser = async ({username, password, userAgent}:LoginParams) => 
         accessToken,
         refreshToken,
     };
+}
+
+export const refreshUserAccessToken = async (refreshToken: string) => {
+    const {
+        payload
+    } = verifyToken<RefreshTokenPayload>(refreshToken, {
+        secret: refreshTokenSignOptions.secret,
+    })
+    // validate payload
+    appAssert(payload, UNAUTHORIZED, "Invalid refresh token");
+
+    // get session
+    const session = await SessionModel.findById(payload.sessionId);
+    const now = Date.now();
+    // if session was found it's not expired
+    appAssert(session
+        && session.expiresAt.getTime() > now
+        , UNAUTHORIZED, "Session expired");
+
+    // Check if the session is expiring soon, improves user experience in the frontend
+    // Prevent random logout on random request
+    // refresh the session if it expires in the next 24 hours
+    const sessionNeedsRefresh = session.expiresAt.getTime() - now <= ONE_DAY_MS;
+
+    if (sessionNeedsRefresh) {
+        session.expiresAt = thirtyDaysFromNow();
+        await session.save();
+    }
+
+    const newRefreshToken = sessionNeedsRefresh ? signToken({
+        sessionId: session._id},
+        refreshTokenSignOptions
+    ) : undefined;
+
+    // Sign tokens
+    const accessToken = signToken({
+        userId: session.userId,
+        sessionId: session._id,
+    })
+
+    return {
+        accessToken,
+        newRefreshToken,
+    }
 }

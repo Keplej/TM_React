@@ -11,12 +11,12 @@ const defaults: CookieOptions = {
     secure
 }
 
-const getAccessTokenCookieOptions = (): CookieOptions => ({
+export const getAccessTokenCookieOptions = (): CookieOptions => ({
     ...defaults,
     expires: accessTokenExpires()
 })
 
-const getRefreshTokenCookieOptions = (): CookieOptions => ({
+export const getRefreshTokenCookieOptions = (): CookieOptions => ({
     ...defaults,
     expires: tokenDaysToExpire(),
     path: REFRESH_PATH // which path the refresh token will be sent on, we dont want the refresh token being sent every request, only when refreshed
